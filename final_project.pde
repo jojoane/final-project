@@ -11,8 +11,8 @@ final int CHAIR_W = 40;
 final int CHAIR_H = 64;
 final int CLOSET_W =90;
 final int CLOSET_H =180;
-final int GHOST1_W =150;
-final int GHOST1_H =153;
+final int GHOST1_W =100;
+final int GHOST1_H =100;
 final int LAMP_W =70;
 final int LAMP_H =178;
 final int SOFA_W =100;
@@ -23,11 +23,13 @@ final int LIFE_W =40;
 final int LIFE_H =37;
 final int GHOST_INIT_Y=200;
 final int GHOST_INIT_X=250;
-final int littleprince_W=35;
-final int littleprince_H=48;
+final int littleprince_W=49;
+final int littleprince_H=67;
 final int EXIT_W=100;
 final int EXIT_H=65;
 
+final int EXIT_INIT_X=590;
+final int EXIT_INIT_Y=50;
 final int CHAIR_INIT_X=150;
 final int CHAIR_INIT_Y=250;
 final int CLOSET1_INIT_X=20;
@@ -64,6 +66,11 @@ final int END = 15;
 *    1: game is win       *
 *    4: second game is playing   *
 ***************************/
+int sofaMove;
+final int SOFA_LEFT=16;
+final int SOFA_UP=17;
+final int SOFA_RIGHT=18;
+final int SOFA_DOWN=19;
 
 boolean upPressed = false;
 boolean downPressed = false;
@@ -72,13 +79,14 @@ boolean rightPressed = false;
 
 int littleprinceX,littleprinceY;
 float littleprincespeed = 5;
-float ghostY,chairX;
+float exitX, ghostY,chairX;
 int heart = 3;
-
+int tableX=TABLE_INIT_X;
+int tableSpeed=4;
+int sofaX=SOFA_INIT_X, sofaY=SOFA_INIT_Y;
 float x_inc = PI/15.0;
 float k = 0.0;
-float k_inc = PI/40.0;
-final float A = 10.0; 
+float k_inc = PI/80.0;
 int a=0,b=0;
 int d,c;
 
@@ -208,6 +216,7 @@ switch (gameState){
   if(mousePressed){
           setup();
           gameState = STORY_ONE;
+          sofaMove=SOFA_LEFT;
          }
   break;
   
@@ -231,7 +240,7 @@ switch (gameState){
   image(story3,0,0,720,480);
   if(mousePressed){
           setup();
-          gameState = GAME_FIRST;
+          gameState = 13;
          }
   break;
   
@@ -249,8 +258,14 @@ switch (gameState){
   
   case GAME_START:
   image(bg, 0, 0, 720, 480);
-  image(exit, 590, 50, EXIT_W, EXIT_H);
-  image(littleprince, littleprinceX, littleprinceY, littleprince_W, littleprince_H);//move the prince by mouse
+  
+  //exit
+  image(exit, exitX, EXIT_INIT_Y ,EXIT_W, EXIT_H);
+  exitX =  3 * sin(x_inc+k) + EXIT_INIT_X ;
+  k+=k_inc;
+  
+  //little prince
+  image(littleprince, littleprinceX, littleprinceY, littleprince_W, littleprince_H);
   if(littleprinceX < 0 ){
           littleprinceX = 0;
         } else if(littleprinceX > 720-littleprince_W) {
@@ -262,102 +277,145 @@ switch (gameState){
           littleprinceY = 480-littleprince_H;
         }
   
+  //block1
+  if(littleprinceY>395-littleprince_H){
+    if(littleprinceX<=115){
+      littleprinceX=115;}
+  }
+  if(littleprinceX<115){
+    if(littleprinceY>=395-littleprince_H){
+      littleprinceY=395-littleprince_H;}
+  }
+  //block2
+  if(littleprinceX>=620){
+    if(littleprinceY<397 && littleprinceY>225){
+      littleprinceY=397;}
+    if(littleprinceY>225-littleprince_H && littleprinceY<397-littleprince_H){
+      littleprinceY=225-littleprince_H;}  
+  }
+  if(littleprinceY<397 & littleprinceY>225-littleprince_H){
+    if(littleprinceX>=625-littleprince_W){
+      littleprinceX=625-littleprince_W;}
+  }
+  
   //life
   for(int i = 0; i < heart; i++) {
     b=i*LIFE_W;
     image(life,710-LIFE_W-b,470-LIFE_H,LIFE_W,LIFE_H);
   }
   
-  //ghost wave
+ //ghost wave
   for(int i = 0; i < 1; i++) {
-  ghostY =  A * sin(x_inc+k) + GHOST_INIT_Y ;
+  ghostY =  10 * sin(x_inc+k) + GHOST_INIT_Y ;
   k+=k_inc;
   a=i*GHOST1_W;
-  image(ghost1,GHOST_INIT_X+a,ghostY);
+  image(ghost1,GHOST_INIT_X+a,ghostY, 100,100);
   }
+  
   
   //ghost die
-  if(littleprinceX>GHOST_INIT_X-GHOST1_W/2+50 && littleprinceX<GHOST1_W+GHOST_INIT_X){
+  if(littleprinceX>GHOST_INIT_X-littleprince_W && littleprinceX<GHOST_INIT_X+GHOST1_W){
     if(littleprinceY<ghostY+GHOST1_H && littleprinceY>ghostY-GHOST1_H/2){
-      //restart
-      littleprinceX=135;
-      littleprinceY=height;
-      heart--;
+      gameOneRestart();
     }
   }
   
-  //chair
+ //chair
   image(chair, chairX, CHAIR_INIT_Y ,CHAIR_W, CHAIR_H);
-  chairX =  A * sin(x_inc+k) + CHAIR_INIT_X ;
+  chairX =  10 * sin(x_inc+k) + CHAIR_INIT_X ;
   k+=k_inc;
-  if(littleprinceX>chairX-CHAIR_W && littleprinceX<CHAIR_W/2+chairX){
-    if(littleprinceY<CHAIR_INIT_Y+CHAIR_H && littleprinceY>CHAIR_INIT_Y-CHAIR_H){
-      //restart
-      littleprinceX=135;
-      littleprinceY=height;
-      heart--;
+  //restart
+    if(littleprinceX>chairX-littleprince_W && littleprinceX<chairX+CHAIR_W-10){
+      if(littleprinceY<CHAIR_INIT_Y+CHAIR_H && littleprinceY>CHAIR_INIT_Y-CHAIR_H){
+        gameOneRestart();
+      }
     }
-  }
-  
-  
+    
   //closet1
   image(closet1, CLOSET1_INIT_X, CLOSET1_INIT_Y,CLOSET_W, CLOSET_H);
-  if(littleprinceX>CLOSET1_INIT_X-CLOSET_W/2 && littleprinceX<CLOSET_W+CLOSET1_INIT_X){
-    if(littleprinceY<CLOSET1_INIT_Y+CLOSET_H && littleprinceY>CLOSET1_INIT_Y-CLOSET_H/2){
-      //restart
-      littleprinceX=135;
-      littleprinceY=height;
-      heart--;
+    //restart
+    if(littleprinceX>CLOSET1_INIT_X-CLOSET_W/2 && littleprinceX<CLOSET_W+CLOSET1_INIT_X){
+      if(littleprinceY<CLOSET1_INIT_Y+CLOSET_H && littleprinceY>CLOSET1_INIT_Y-CLOSET_H/2){
+        gameOneRestart();
+      }
     }
-  }
-  
-  
+    
   //lamp
   image(lamp, LAMP_INIT_X, LAMP_INIT_Y, LAMP_W, LAMP_H);
-  if(littleprinceX>LAMP_INIT_X-LAMP_W/2 && littleprinceX<LAMP_W+LAMP_INIT_X){
-    if(littleprinceY<LAMP_INIT_Y+LAMP_H && littleprinceY>LAMP_INIT_Y-LAMP_H/2){
-      //restart
-      littleprinceX=135;
-      littleprinceY=height;
-      heart--;
+    //restart
+    if(littleprinceX>LAMP_INIT_X-LAMP_W/2 && littleprinceX<LAMP_W+LAMP_INIT_X){
+      if(littleprinceY<LAMP_INIT_Y+LAMP_H && littleprinceY>LAMP_INIT_Y-LAMP_H/2){
+        gameOneRestart();
+      }
     }
-  }
   
   //sofa
-  image(sofa, SOFA_INIT_X+ A * sin(x_inc+k), SOFA_INIT_Y, SOFA_W, SOFA_H);
-  if(littleprinceX>SOFA_INIT_X+ A * sin(x_inc+k)-SOFA_W/2+30 && littleprinceX<SOFA_W/2+SOFA_INIT_X+ A * sin(x_inc+k)+30){
-    if(littleprinceY<SOFA_INIT_Y+SOFA_H && littleprinceY>SOFA_INIT_Y-SOFA_H+30){
-      //restart
-      littleprinceX=135;
-      littleprinceY=height;
-      heart--;
-    }
-  }
+  image(sofa, sofaX, sofaY, SOFA_W, SOFA_H);
   
-  //table
-  image(table, TABLE_INIT_X, TABLE_INIT_Y, TABLE_W, TABLE_H);
-  if(littleprinceX>TABLE_INIT_X-TABLE_W/2+40 && littleprinceX<TABLE_W+TABLE_INIT_X){
-    if(littleprinceY<TABLE_INIT_Y+TABLE_H && littleprinceY>TABLE_INIT_Y-TABLE_H/2){
+  switch (sofaMove){
+    case 16:
+      sofaX -=2;
+      if(sofaX<=200){
+        sofaMove=17;
+      }
+    break;
+    
+    case 17:
+      sofaY -=2;
+      if(sofaY<=350){
+        sofaMove=18;
+      }
+    break;
+    
+    case 18:
+      sofaX +=2;
+      if(sofaX>=SOFA_INIT_X){
+        sofaMove=19;
+      }
+    break;
+    
+    case 19:
+      sofaY +=2;
+      if(sofaY>=SOFA_INIT_Y){
+        sofaMove=16;
+      }
+    break;
+  }    
       //restart
-      littleprinceX=135;
-      littleprinceY=height;
-      heart--;
-    }
+   if(littleprinceX>sofaX-littleprince_W && littleprinceX<sofaX+SOFA_W){
+      if(littleprinceY<sofaY+SOFA_H && littleprinceY>sofaY-littleprince_H){
+        gameOneRestart();
+      }
+   }
+      
+  //table
+  image(table, tableX, TABLE_INIT_Y, TABLE_W, TABLE_H);
+    tableX +=tableSpeed;
+  if(tableX>=width){
+    tableSpeed-=1;
   }
+  if(tableX<TABLE_INIT_X){
+      tableSpeed+=1;
+  }
+    //restart
+    if(littleprinceX>tableX-TABLE_W/2+40 && littleprinceX<TABLE_W+tableX){
+      if(littleprinceY<TABLE_INIT_Y+TABLE_H && littleprinceY>TABLE_INIT_Y-TABLE_H/2){
+        gameOneRestart();
+      }
+    }
+  
+  
   
   //closet2
   c+=2;
   c%=480;
   image(closet2, CLOSET2_INIT_X, CLOSET2_INIT_Y+c, CLOSET_W, CLOSET_H);
-  if(littleprinceX>CLOSET2_INIT_X-CLOSET_W/2 && littleprinceX<CLOSET_W+CLOSET2_INIT_X){
-    if(littleprinceY<CLOSET2_INIT_Y+c+CLOSET_H && littleprinceY>CLOSET2_INIT_Y+c-CLOSET_H/2){
-      //restart
-      littleprinceX=135;
-      littleprinceY=height;
-      heart--;
+    //restart
+    if(littleprinceX>CLOSET2_INIT_X-CLOSET_W/2 && littleprinceX<CLOSET_W+CLOSET2_INIT_X){
+      if(littleprinceY<CLOSET2_INIT_Y+c+CLOSET_H && littleprinceY>CLOSET2_INIT_Y+c-CLOSET_H/2){
+        gameOneRestart();
+      }
     }
-  }
-  
   
   
   //game lose
@@ -731,4 +789,10 @@ void mouseClicked(){
     
     }//isplaying
 
+}
+
+void gameOneRestart(){
+  littleprinceX=135;
+  littleprinceY=height;
+  heart--;
 }
