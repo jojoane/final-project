@@ -128,6 +128,13 @@ Warning warning;
 Restart restart;
 Rule rule;
 
+//sound
+import ddf.minim.*;
+ 
+Minim minim;
+AudioPlayer song;
+
+boolean bgmusicIsPlaying;
 
 void setup(){
   size(720,480);
@@ -194,9 +201,20 @@ void setup(){
     scaredBySpider=false;
     ghostAttack=false;
     
+    //sound
+    minim = new Minim(this);
+    song = minim.loadFile("sound/bg_music.mp3");
+    bgmusicIsPlaying = false;
 }
 
 void draw(){
+  
+  //sound
+  if(bgmusicIsPlaying){
+    song.play();
+    song.loop();
+  }    
+  
   if (upPressed) {
       littleprinceY -= littleprincespeed;
     }
@@ -216,7 +234,6 @@ switch (gameState){
   if(mousePressed){
           setup();
           gameState = STORY_ONE;
-          sofaMove=SOFA_LEFT;
          }
   break;
   
@@ -240,8 +257,10 @@ switch (gameState){
   image(story3,0,0,720,480);
   if(mousePressed){
           setup();
-          gameState = 13;
-         }
+          gameState = GAME_FIRST;
+          sofaMove=SOFA_LEFT;
+          bgmusicIsPlaying=true;
+  }
   break;
   
    case GAME_FIRST:
@@ -381,8 +400,8 @@ switch (gameState){
       }
     break;
   }    
-      //restart
-   if(littleprinceX>sofaX-littleprince_W && littleprinceX<sofaX+SOFA_W){
+    //restart
+    if(littleprinceX>sofaX-littleprince_W && littleprinceX<sofaX+SOFA_W){
       if(littleprinceY<sofaY+SOFA_H && littleprinceY>sofaY-littleprince_H){
         gameOneRestart();
       }
@@ -433,7 +452,8 @@ switch (gameState){
 
     
   case GAME_LOSE:
-      image(lose1, 0, 0, 720, 480); 
+      image(lose1, 0, 0, 720, 480);
+      
       if ( mouseX>=470 && mouseX<=670 && mouseY>=370 && mouseY<=430){
         image(lose2, 0, 0);
         if(mousePressed){
